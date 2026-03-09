@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Utility Outage Architecture Decision Tree</title>
+    <meta name="description" content="Choose the right Salesforce architecture pattern for utility outage notifications based on outage type and data flow.">
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -43,6 +44,27 @@
         * { box-sizing: border-box; }
 
         html { scroll-behavior: smooth; }
+
+        .skip-link {
+            position: absolute;
+            top: -100px;
+            left: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: var(--text);
+            color: var(--surface);
+            font-size: 0.875rem;
+            font-weight: 500;
+            text-decoration: none;
+            border-radius: var(--radius);
+            z-index: 1001;
+            transition: top 0.2s ease;
+        }
+
+        .skip-link:focus {
+            top: 0.5rem;
+            outline: 2px solid var(--accent);
+            outline-offset: 2px;
+        }
 
         body {
             font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -93,18 +115,25 @@
             padding: var(--space-3xl);
             margin-bottom: var(--space-3xl);
             overflow: auto;
+            min-height: 600px;
         }
 
         #tree-container {
-            min-height: 720px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            min-height: 640px;
+            width: 100%;
+            display: block;
         }
 
         #tree-container svg {
             display: block;
             overflow: visible;
+            width: 100%;
+            min-width: 600px;
+            max-width: 1200px;
+        }
+
+        .node {
+            cursor: pointer;
         }
 
         .node circle {
@@ -224,6 +253,16 @@
             letter-spacing: 0.01em;
         }
 
+        .comparison-table thead {
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+
+        .comparison-table thead th {
+            box-shadow: 0 1px 0 var(--border);
+        }
+
         .comparison-table th:first-child {
             min-width: 140px;
         }
@@ -266,18 +305,31 @@
         .comparison-table tbody tr:nth-child(even):hover td {
             background: var(--bg);
         }
+
+        @media (prefers-reduced-motion: reduce) {
+            .node circle, #tooltip, .comparison-table td { transition: none; }
+        }
+
+        @media print {
+            .skip-link, .legend { display: none; }
+            #tree-wrapper, .matrix-wrapper { box-shadow: none; border: 1px solid #ddd; }
+            body { background: #fff; }
+        }
     </style>
 </head>
 <body>
+    <a href="#main" class="skip-link">Skip to main content</a>
 
-<div class="page">
+<div class="page" id="main">
     <header>
         <h1>Utility Outage Notification: Architectural Decision Tree</h1>
         <p class="subtitle">Choose the right Salesforce architecture pattern based on outage type and data flow.</p>
     </header>
 
-    <div id="tree-wrapper">
-        <div id="tree-container"></div>
+    <div id="tree-wrapper" role="region" aria-label="Architectural decision tree">
+        <div id="tree-container" aria-busy="true" aria-live="polite">
+            <noscript>JavaScript is required to display the decision tree. Please enable JavaScript to view this content.</noscript>
+        </div>
     </div>
 
     <div class="legend">
@@ -294,11 +346,11 @@
             <table class="comparison-table">
                 <thead>
                     <tr>
-                        <th>Scenario</th>
-                        <th class="pattern-col">Pattern: D360 → Data Action → MCE (Push)</th>
-                        <th class="pattern-col">Pattern: MCE → Middleware Data Graph Call (Pull)</th>
-                        <th class="pattern-col">Pattern: D360 → MCA (Broadcast Flows)</th>
-                        <th class="pattern-col">Pattern: D360 → MCA (On-Demand Flows)</th>
+                        <th scope="col">Scenario</th>
+                        <th scope="col" class="pattern-col">Pattern: D360 → Data Action → MCE (Push)</th>
+                        <th scope="col" class="pattern-col">Pattern: MCE → Middleware Data Graph Call (Pull)</th>
+                        <th scope="col" class="pattern-col">Pattern: D360 → MCA (Broadcast Flows)</th>
+                        <th scope="col" class="pattern-col">Pattern: D360 → MCA (On-Demand Flows)</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -367,9 +419,19 @@
 </div>
 
 <script>
+    let initAttempts = 0;
     function initTree() {
         if (typeof d3 === "undefined") {
-            setTimeout(initTree, 50);
+            initAttempts++;
+            if (initAttempts > 60) {
+                const c = document.getElementById("tree-container");
+                if (c && !c.querySelector("svg")) {
+                    c.innerHTML = "<p style=\"text-align:center;color:var(--text-muted);padding:2rem;\">Unable to load the decision tree. Please check your connection and refresh the page.</p>";
+                    c.setAttribute("aria-busy", "false");
+                }
+                return;
+            }
+            setTimeout(initTree, 100);
             return;
         }
         const container = document.getElementById("tree-container");
@@ -430,11 +492,16 @@
 
     const svg = d3.select(container).append("svg")
         .attr("viewBox", `0 0 ${treeWidth} ${treeHeight}`)
+        .attr("role", "img")
+        .attr("aria-label", "Architectural decision tree for utility outage notification patterns")
         .attr("preserveAspectRatio", "xMidYMid meet")
         .attr("width", treeWidth)
         .attr("height", treeHeight)
-        .style("max-width", "100%")
+        .style("width", "100%")
         .style("height", "auto")
+        .style("max-width", treeWidth + "px")
+        .style("height", "auto")
+        .style("overflow", "visible")
         .style("overflow", "visible");
 
     const g = svg.append("g");
@@ -483,6 +550,24 @@
         .attr("class", "link")
         .attr("d", linkGenerator);
 
+    function positionTooltip(event) {
+        const tooltip = document.getElementById("tooltip");
+        if (!tooltip) return;
+        const offset = 16;
+        const maxW = 300;
+        const maxH = 200;
+        let left = event.pageX + offset;
+        let top = event.pageY - 8;
+        if (left + maxW > window.innerWidth + window.scrollX) left = event.pageX - maxW - offset;
+        if (top + maxH > window.innerHeight + window.scrollY) top = event.pageY - maxH - 8;
+        if (left < window.scrollX) left = window.scrollX + 8;
+        if (top < window.scrollY) top = window.scrollY + 8;
+        d3.select(tooltip)
+            .style("left", left + "px")
+            .style("top", top + "px")
+            .style("transform", "translate(0, -2px)");
+    }
+
     const node = g.selectAll(".node")
         .data(descendants)
         .enter().append("g")
@@ -494,17 +579,10 @@
         .attr("transform", d => `translate(${d.y * scaleX},${d.x})`)
         .on("mouseover", (event, d) => {
             const tooltip = d3.select("#tooltip");
-            tooltip.style("opacity", 1)
-                .style("transform", "translate(0, -2px)")
-                .style("left", (event.pageX + 16) + "px")
-                .style("top", (event.pageY - 4) + "px")
-                .html(d.data.description);
+            tooltip.style("opacity", 1).html(d.data.description);
+            positionTooltip(event);
         })
-        .on("mousemove", (event) => {
-            d3.select("#tooltip")
-                .style("left", (event.pageX + 16) + "px")
-                .style("top", (event.pageY - 4) + "px");
-        })
+        .on("mousemove", (event) => positionTooltip(event))
         .on("mouseout", () => {
             d3.select("#tooltip")
                 .style("opacity", 0)
@@ -524,6 +602,8 @@
             return d.children ? "end" : "start";
         })
         .text(d => d.data.name);
+
+        container.setAttribute("aria-busy", "false");
     }
     if (document.readyState === "loading") {
         document.addEventListener("DOMContentLoaded", initTree);
