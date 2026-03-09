@@ -253,8 +253,8 @@
         ]
     };
 
-    const treeWidth = 1150;
-    const treeHeight = 680;
+    const treeWidth = 1200;
+    const treeHeight = 720;
     const baseMargin = { top: 56, right: 200, bottom: 56, left: 56 };
 
     const svg = d3.select(container).append("svg")
@@ -276,10 +276,10 @@
         .separation((a, b) => {
             const sameParent = a.parent === b.parent;
             const depth = a.depth;
-            if (depth === 0) return 3.0;
-            if (depth === 1) return 2.5;
-            if (sameParent) return 2.0;
-            return 2.4;
+            if (depth === 0) return 3.5;
+            if (depth === 1) return 3.0;
+            if (sameParent) return 2.5;
+            return 2.8;
         });
 
     const root = d3.hierarchy(data);
@@ -290,7 +290,10 @@
     const maxY = Math.max(...descendants.map(d => d.y));
     const spanY = maxY - minY || 1;
 
-    const leftPadding = 260;
+    const nodeRadius = 11;
+    const labelOffset = 32;
+    const rootLabelWidth = 200;
+    const leftPadding = Math.max(260, rootLabelWidth + labelOffset + nodeRadius + 48);
     const rightPadding = 200;
     const scaleX = (treeWidth - leftPadding - rightPadding) / spanY;
     const offsetX = leftPadding - minY * scaleX;
@@ -298,17 +301,16 @@
     g.attr("transform", `translate(${offsetX},${baseMargin.top})`);
 
     const linkGenerator = d3.link(d3.curveBumpX)
-        .x(d => d.y * scaleX)
-        .y(d => d.x);
+        .source(d => ({ x: d.source.y * scaleX + nodeRadius, y: d.source.x }))
+        .target(d => ({ x: d.target.y * scaleX - nodeRadius, y: d.target.x }))
+        .x(d => d.x)
+        .y(d => d.y);
 
     g.selectAll(".link")
         .data(root.links())
         .enter().append("path")
         .attr("class", "link")
         .attr("d", linkGenerator);
-
-    const nodeRadius = 11;
-    const labelOffset = 20;
 
     const node = g.selectAll(".node")
         .data(descendants)
@@ -343,11 +345,11 @@
     node.append("text")
         .attr("dy", ".35em")
         .attr("x", d => {
-            if (!d.parent) return labelOffset;
+            if (!d.parent) return -labelOffset;
             return d.children ? -labelOffset : labelOffset;
         })
         .style("text-anchor", d => {
-            if (!d.parent) return "start";
+            if (!d.parent) return "end";
             return d.children ? "end" : "start";
         })
         .text(d => d.data.name);
