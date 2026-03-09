@@ -112,11 +112,26 @@
             background: var(--surface);
             border-radius: var(--radius-lg);
             box-shadow: var(--shadow-md);
-            padding: var(--space-3xl);
+            padding: var(--space-lg) var(--space-xl);
             margin-bottom: var(--space-3xl);
             overflow: auto;
             min-height: 600px;
         }
+
+        .tree-disclaimer {
+            font-size: 0.8125rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+            padding: var(--space-sm) var(--space-md);
+            margin-bottom: var(--space-md);
+            background: var(--bg-subtle);
+            border-left: 3px solid var(--decision);
+            border-radius: 0 var(--radius) var(--radius) 0;
+        }
+
+        .tree-disclaimer strong { color: var(--text); font-weight: 600; }
+        .tree-disclaimer a { color: var(--decision); text-decoration: none; font-weight: 500; }
+        .tree-disclaimer a:hover { text-decoration: underline; }
 
         #tree-container {
             min-height: 640px;
@@ -329,6 +344,7 @@
     </header>
 
     <div id="tree-wrapper" role="region" aria-label="Architectural decision tree">
+        <p class="tree-disclaimer"><strong>Note:</strong> The final solution will depend on your specific use-case and tech-stack requirements. Review the <a href="#matrix">Pattern Comparison Matrix</a> below for a detailed comparison.</p>
         <div id="tree-container" aria-busy="true" aria-live="polite">
             <noscript>JavaScript is required to display the decision tree. Please enable JavaScript to view this content.</noscript>
         </div>
@@ -342,7 +358,7 @@
         <span>Hover over a node to see details.</span>
     </div>
 
-    <section class="matrix-section">
+    <section class="matrix-section" id="matrix">
         <h2>Pattern Comparison Matrix</h2>
         <div class="matrix-wrapper">
             <table class="comparison-table">
@@ -490,7 +506,7 @@
 
     const treeWidth = 1200;
     const treeHeight = 720;
-    const baseMargin = { top: 56, right: 200, bottom: 56, left: 56 };
+    const baseMargin = { top: 32, right: 160, bottom: 32, left: 32 };
 
     const svg = d3.select(container).append("svg")
         .attr("viewBox", `0 0 ${treeWidth} ${treeHeight}`)
@@ -503,7 +519,6 @@
         .style("height", "auto")
         .style("max-width", treeWidth + "px")
         .style("height", "auto")
-        .style("overflow", "visible")
         .style("overflow", "visible");
 
     const g = svg.append("g");
@@ -533,8 +548,8 @@
     const nodeRadius = 11;
     const labelOffset = 32;
     const rootLabelWidth = 200;
-    const leftPadding = Math.max(260, rootLabelWidth + labelOffset + nodeRadius + 48);
-    const rightPadding = 200;
+    const leftPadding = Math.max(240, rootLabelWidth + labelOffset + nodeRadius + 32);
+    const rightPadding = 160;
     const scaleX = (treeWidth - leftPadding - rightPadding) / spanY;
     const offsetX = leftPadding - minY * scaleX;
 
