@@ -5,21 +5,173 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Utility Outage Architecture Decision Tree</title>
     <script src="https://d3js.org/d3.v7.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f8f9fa; margin: 20px; }
-        .node circle { fill: #fff; stroke: #3498db; stroke-width: 3px; }
-        .node text { font: 12px sans-serif; font-weight: bold; }
-        .link { fill: none; stroke: #ccc; stroke-width: 2px; }
-        .tooltip { position: absolute; padding: 10px; background: white; border: 1px solid #ddd; border-radius: 5px; pointer-events: none; opacity: 0; box-shadow: 0 2px 5px rgba(0,0,0,0.1); max-width: 250px; font-size: 13px; }
-        h2 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
-        .legend { margin-top: 20px; font-size: 12px; color: #666; }
+        :root {
+            --bg: #fafbfc;
+            --surface: #ffffff;
+            --border: #e2e6ea;
+            --text: #1a1d21;
+            --text-muted: #5c6370;
+            --accent: #0d6e6e;
+            --accent-light: #e6f2f2;
+            --decision: #2d5a8b;
+            --decision-bg: #eef4fb;
+            --outcome: #1a7f37;
+            --outcome-bg: #e8f5ec;
+            --shadow: 0 1px 3px rgba(0,0,0,0.06);
+            --shadow-hover: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            margin: 0;
+            min-height: 100vh;
+            line-height: 1.5;
+        }
+
+        .page {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+        }
+
+        header {
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text);
+            margin: 0 0 0.25rem 0;
+            letter-spacing: -0.02em;
+        }
+
+        .subtitle {
+            font-size: 0.9375rem;
+            color: var(--text-muted);
+            margin: 0;
+        }
+
+        #tree-wrapper {
+            background: var(--surface);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            overflow: auto;
+        }
+
+        #tree-container {
+            min-height: 520px;
+        }
+
+        #tree-container svg {
+            display: block;
+            overflow: visible;
+        }
+
+        .node circle {
+            stroke-width: 2.5px;
+            transition: filter 0.15s ease;
+        }
+
+        .node:hover circle { filter: brightness(0.96); }
+
+        .node--root circle { fill: var(--accent-light); stroke: var(--accent); }
+        .node--internal circle { fill: var(--decision-bg); stroke: var(--decision); }
+        .node--leaf circle { fill: var(--outcome-bg); stroke: var(--outcome); }
+
+        .node text {
+            font: 500 13px 'DM Sans', sans-serif;
+            fill: var(--text);
+        }
+
+        .node--root text { font-weight: 700; fill: var(--accent); }
+        .node--leaf text { fill: var(--outcome); }
+
+        .link {
+            fill: none;
+            stroke: var(--border);
+            stroke-width: 1.5px;
+        }
+
+        #tooltip {
+            position: fixed;
+            padding: 12px 14px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            pointer-events: none;
+            opacity: 0;
+            box-shadow: var(--shadow-hover);
+            max-width: 280px;
+            font-size: 0.8125rem;
+            color: var(--text);
+            line-height: 1.45;
+            z-index: 1000;
+            transition: opacity 0.15s ease;
+        }
+
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem 1.5rem;
+            align-items: center;
+            font-size: 0.8125rem;
+            color: var(--text-muted);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            border: 2px solid;
+        }
+
+        .legend-dot--root { background: var(--accent-light); border-color: var(--accent); }
+        .legend-dot--decision { background: var(--decision-bg); border-color: var(--decision); }
+        .legend-dot--outcome { background: var(--outcome-bg); border-color: var(--outcome); }
     </style>
 </head>
 <body>
 
-<h2>Utility Outage Notification: Architectural Decision Tree</h2>
-<div id="tree-container"></div>
-<div id="tooltip" class="tooltip"></div>
+<div class="page">
+    <header>
+        <h1>Utility Outage Notification: Architectural Decision Tree</h1>
+        <p class="subtitle">Choose the right Salesforce architecture pattern based on outage type and data flow.</p>
+    </header>
+
+    <div id="tree-wrapper">
+        <div id="tree-container"></div>
+    </div>
+
+    <div id="tooltip"></div>
+
+    <div class="legend">
+        <span class="legend-item"><span class="legend-dot legend-dot--root"></span> Start / trigger</span>
+        <span class="legend-item"><span class="legend-dot legend-dot--decision"></span> Decision point</span>
+        <span class="legend-item"><span class="legend-dot legend-dot--outcome"></span> Recommended pattern</span>
+        <span style="color: var(--border);">·</span>
+        <span>Hover over a node to see details.</span>
+    </div>
+</div>
 
 <script>
     const data = {
@@ -41,9 +193,9 @@
                         "name": "Full Data in Payload?",
                         "description": "Does the Grid send the Contact Info + ETR + Cause?",
                         "children": [
-                            { 
-                                "name": "Data Action (Push)", 
-                                "description": "BEST FOR: Low-code. DC pushes directly to MCE Transactional API." 
+                            {
+                                "name": "Data Action (Push)",
+                                "description": "BEST FOR: Low-code. DC pushes directly to MCE Transactional API."
                             }
                         ]
                     },
@@ -72,55 +224,84 @@
         ]
     };
 
-    const width = 900;
-    const height = 500;
-    const margin = {top: 20, right: 120, bottom: 20, left: 120};
+    const treeWidth = 920;
+    const treeHeight = 520;
+    const baseMargin = { top: 24, right: 140, bottom: 24, left: 24 };
 
     const svg = d3.select("#tree-container").append("svg")
-        .attr("width", width)
-        .attr("height", height)
-        .append("g")
-        .attr("transform", `translate(${margin.left},${margin.top})`);
+        .attr("width", "100%")
+        .attr("height", treeHeight)
+        .attr("viewBox", `0 0 ${treeWidth} ${treeHeight}`)
+        .style("overflow", "visible");
 
-    const tree = d3.tree().size([height - margin.top - margin.bottom, width - margin.left - margin.right]);
+    const g = svg.append("g");
+
+    const tree = d3.tree()
+        .size([treeHeight - baseMargin.top - baseMargin.bottom, treeWidth - baseMargin.left - baseMargin.right])
+        .separation((a, b) => (a.parent === b.parent ? 1.2 : 1.4));
+
     const root = d3.hierarchy(data);
     tree(root);
 
-    svg.selectAll(".link")
+    const descendants = root.descendants();
+    const minY = Math.min(...descendants.map(d => d.y));
+    const maxY = Math.max(...descendants.map(d => d.y));
+    const spanY = maxY - minY || 1;
+
+    const leftPadding = 200;
+    const rightPadding = 140;
+    const scaleX = (treeWidth - leftPadding - rightPadding) / spanY;
+    const offsetX = leftPadding - minY * scaleX;
+
+    g.attr("transform", `translate(${offsetX},${baseMargin.top})`);
+
+    const link = g.selectAll(".link")
         .data(root.links())
         .enter().append("path")
         .attr("class", "link")
-        .attr("d", d3.linkHorizontal().x(d => d.y).y(d => d.x));
+        .attr("d", d3.linkHorizontal()
+            .x(d => d.y * scaleX)
+            .y(d => d.x));
 
-    const node = svg.selectAll(".node")
-        .data(root.descendants())
+    const node = g.selectAll(".node")
+        .data(descendants)
         .enter().append("g")
-        .attr("class", d => "node" + (d.children ? " node--internal" : " node--leaf"))
-        .attr("transform", d => `translate(${d.y},${d.x})`)
+        .attr("class", d => {
+            if (!d.parent) return "node node--root";
+            if (d.children) return "node node--internal";
+            return "node node--leaf";
+        })
+        .attr("transform", d => `translate(${d.y * scaleX},${d.x})`)
         .on("mouseover", (event, d) => {
             const tooltip = d3.select("#tooltip");
-            tooltip.transition().duration(200).style("opacity", .9);
-            tooltip.html(d.data.description)
-                .style("left", (event.pageX + 10) + "px")
-                .style("top", (event.pageY - 28) + "px");
+            tooltip.style("opacity", 1)
+                .style("left", (event.pageX + 14) + "px")
+                .style("top", (event.pageY - 8) + "px")
+                .html(d.data.description);
+        })
+        .on("mousemove", (event) => {
+            d3.select("#tooltip")
+                .style("left", (event.pageX + 14) + "px")
+                .style("top", (event.pageY - 8) + "px");
         })
         .on("mouseout", () => {
-            d3.select("#tooltip").transition().duration(500).style("opacity", 0);
+            d3.select("#tooltip").style("opacity", 0);
         });
 
-    node.append("circle").attr("r", 8);
+    node.append("circle").attr("r", 9);
+
     node.append("text")
         .attr("dy", ".35em")
-        .attr("x", d => d.children ? -15 : 15)
-        .style("text-anchor", d => d.children ? "end" : "start")
+        .attr("x", d => {
+            if (!d.parent) return 14;
+            return d.children ? -12 : 12;
+        })
+        .style("text-anchor", d => {
+            if (!d.parent) return "start";
+            return d.children ? "end" : "start";
+        })
         .text(d => d.data.name);
-
 </script>
-
-<div class="legend">
-    <strong>How to use:</strong> Hover over nodes to see the architectural rationale. 
-    Blue circles indicate decision points; text labels indicate the recommended Salesforce architecture pattern.
-</div>
 
 </body>
 </html>
