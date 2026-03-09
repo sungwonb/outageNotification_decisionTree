@@ -573,19 +573,21 @@
     function positionTooltip(event) {
         const tooltip = document.getElementById("tooltip");
         if (!tooltip) return;
-        const offset = 16;
+        const offset = 12;
         const maxW = 300;
         const maxH = 200;
-        let left = event.pageX + offset;
-        let top = event.pageY - 8;
-        if (left + maxW > window.innerWidth + window.scrollX) left = event.pageX - maxW - offset;
-        if (top + maxH > window.innerHeight + window.scrollY) top = event.pageY - maxH - 8;
-        if (left < window.scrollX) left = window.scrollX + 8;
-        if (top < window.scrollY) top = window.scrollY + 8;
+        const x = event.clientX;
+        const y = event.clientY;
+        let left = x + offset;
+        let top = y + offset;
+        if (left + maxW > window.innerWidth) left = x - maxW - offset;
+        if (top + maxH > window.innerHeight) top = y - maxH - offset;
+        if (left < 0) left = 8;
+        if (top < 0) top = 8;
         d3.select(tooltip)
             .style("left", left + "px")
             .style("top", top + "px")
-            .style("transform", "translate(0, -2px)");
+            .style("transform", "none");
     }
 
     const node = g.selectAll(".node")
@@ -603,11 +605,7 @@
             positionTooltip(event);
         })
         .on("mousemove", (event) => positionTooltip(event))
-        .on("mouseout", () => {
-            d3.select("#tooltip")
-                .style("opacity", 0)
-                .style("transform", "translate(0, 0)");
-        });
+        .on("mouseout", () => d3.select("#tooltip").style("opacity", 0));
 
     node.append("circle").attr("r", nodeRadius);
 
