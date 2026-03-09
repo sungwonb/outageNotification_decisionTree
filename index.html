@@ -195,7 +195,14 @@
 </div>
 
 <script>
-    const data = {
+    function initTree() {
+        if (typeof d3 === "undefined") {
+            setTimeout(initTree, 50);
+            return;
+        }
+        const container = document.getElementById("tree-container");
+        if (!container || container.querySelector("svg")) return;
+        const data = {
         "name": "Outage Event Detected",
         "description": "Start here: Grid/OMS triggers a notification event.",
         "children": [
@@ -249,10 +256,13 @@
     const treeHeight = 560;
     const baseMargin = { top: 48, right: 160, bottom: 48, left: 48 };
 
-    const svg = d3.select("#tree-container").append("svg")
-        .attr("width", "100%")
-        .attr("height", treeHeight)
+    const svg = d3.select(container).append("svg")
         .attr("viewBox", `0 0 ${treeWidth} ${treeHeight}`)
+        .attr("preserveAspectRatio", "xMidYMid meet")
+        .attr("width", treeWidth)
+        .attr("height", treeHeight)
+        .style("max-width", "100%")
+        .style("height", "auto")
         .style("overflow", "visible");
 
     const g = svg.append("g");
@@ -286,10 +296,9 @@
 
     g.attr("transform", `translate(${offsetX},${baseMargin.top})`);
 
-    const linkGenerator = d3.linkHorizontal()
+    const linkGenerator = d3.link(d3.curveMonotoneX)
         .x(d => d.y * scaleX)
-        .y(d => d.x)
-        .curve(d3.curveMonotoneX);
+        .y(d => d.x);
 
     g.selectAll(".link")
         .data(root.links())
@@ -341,6 +350,12 @@
             return d.children ? "end" : "start";
         })
         .text(d => d.data.name);
+    }
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", initTree);
+    } else {
+        initTree();
+    }
 </script>
 
 </body>
