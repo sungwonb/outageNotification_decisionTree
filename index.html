@@ -57,19 +57,20 @@
         }
 
         h1 {
-            font-size: 1.5rem;
+            font-size: 1.625rem;
             font-weight: 700;
             color: var(--text);
-            margin: 0 0 var(--space-xs) 0;
-            letter-spacing: -0.02em;
-            line-height: 1.3;
+            margin: 0 0 var(--space-sm) 0;
+            letter-spacing: -0.025em;
+            line-height: 1.25;
         }
 
         .subtitle {
-            font-size: 0.9375rem;
+            font-size: 1rem;
             color: var(--text-muted);
             margin: 0;
-            max-width: 36em;
+            max-width: 40em;
+            line-height: 1.5;
         }
 
         #tree-wrapper {
@@ -77,13 +78,13 @@
             border-radius: 16px;
             border: 1px solid var(--border);
             box-shadow: var(--shadow);
-            padding: var(--space-2xl);
+            padding: var(--space-3xl);
             margin-bottom: var(--space-2xl);
             overflow: auto;
         }
 
         #tree-container {
-            min-height: 600px;
+            min-height: 720px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -109,19 +110,19 @@
         .node--leaf circle { fill: var(--outcome-bg); stroke: var(--outcome); }
 
         .node text {
-            font: 500 13px 'DM Sans', sans-serif;
+            font: 500 14px 'DM Sans', sans-serif;
             fill: var(--text);
-            letter-spacing: 0.01em;
+            letter-spacing: 0.015em;
         }
 
-        .node--root text { font-weight: 700; fill: var(--accent); font-size: 14px; }
-        .node--leaf text { fill: var(--outcome); font-weight: 500; }
+        .node--root text { font-weight: 700; fill: var(--accent); font-size: 15px; }
+        .node--leaf text { fill: var(--outcome); font-weight: 600; font-size: 13px; }
 
         .link {
             fill: none;
-            stroke: var(--border);
-            stroke-width: 1.5px;
-            opacity: 0.85;
+            stroke: #b8bcc4;
+            stroke-width: 2px;
+            stroke-linecap: round;
         }
 
         #tooltip {
@@ -252,9 +253,9 @@
         ]
     };
 
-    const treeWidth = 1000;
-    const treeHeight = 560;
-    const baseMargin = { top: 48, right: 160, bottom: 48, left: 48 };
+    const treeWidth = 1150;
+    const treeHeight = 680;
+    const baseMargin = { top: 56, right: 200, bottom: 56, left: 56 };
 
     const svg = d3.select(container).append("svg")
         .attr("viewBox", `0 0 ${treeWidth} ${treeHeight}`)
@@ -275,10 +276,10 @@
         .separation((a, b) => {
             const sameParent = a.parent === b.parent;
             const depth = a.depth;
-            if (depth === 0) return 2.2;
-            if (depth === 1) return 1.9;
-            if (sameParent) return 1.5;
-            return 1.8;
+            if (depth === 0) return 3.0;
+            if (depth === 1) return 2.5;
+            if (sameParent) return 2.0;
+            return 2.4;
         });
 
     const root = d3.hierarchy(data);
@@ -289,14 +290,14 @@
     const maxY = Math.max(...descendants.map(d => d.y));
     const spanY = maxY - minY || 1;
 
-    const leftPadding = 220;
-    const rightPadding = 160;
+    const leftPadding = 260;
+    const rightPadding = 200;
     const scaleX = (treeWidth - leftPadding - rightPadding) / spanY;
     const offsetX = leftPadding - minY * scaleX;
 
     g.attr("transform", `translate(${offsetX},${baseMargin.top})`);
 
-    const linkGenerator = d3.link(d3.curveMonotoneX)
+    const linkGenerator = d3.link(d3.curveBumpX)
         .x(d => d.y * scaleX)
         .y(d => d.x);
 
@@ -306,8 +307,8 @@
         .attr("class", "link")
         .attr("d", linkGenerator);
 
-    const nodeRadius = 10;
-    const labelOffset = 16;
+    const nodeRadius = 11;
+    const labelOffset = 20;
 
     const node = g.selectAll(".node")
         .data(descendants)
