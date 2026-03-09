@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Utility Outage Architecture Decision Tree</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f8f9fa; margin: 20px; }
+        .node circle { fill: #fff; stroke: #3498db; stroke-width: 3px; }
+        .node text { font: 12px sans-serif; font-weight: bold; }
+        .link { fill: none; stroke: #ccc; stroke-width: 2px; }
+        .tooltip { position: absolute; padding: 10px; background: white; border: 1px solid #ddd; border-radius: 5px; pointer-events: none; opacity: 0; box-shadow: 0 2px 5px rgba(0,0,0,0.1); max-width: 250px; font-size: 13px; }
+        h2 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        .legend { margin-top: 20px; font-size: 12px; color: #666; }
+    </style>
+</head>
+<body>
+
+<h2>Utility Outage Notification: Architectural Decision Tree</h2>
+<div id="tree-container"></div>
+<div id="tooltip" class="tooltip"></div>
+
+<script>
+    const data = {
+        "name": "Outage Event Detected",
+        "description": "Start here: Grid/OMS triggers a notification event.",
+        "children": [
+            {
+                "name": "Planned Outage?",
+                "description": "Is this a scheduled maintenance event for a large area?",
+                "children": [
+                    { "name": "Broadcast Flow", "description": "BEST FOR: High-volume, non-urgent batching. Low complexity." }
+                ]
+            },
+            {
+                "name": "Unplanned (Real-Time)?",
+                "description": "Emergency fault requiring immediate notification.",
+                "children": [
+                    {
+                        "name": "Full Data in Payload?",
+                        "description": "Does the Grid send the Contact Info + ETR + Cause?",
+                        "children": [
+                            { 
+                                "name": "Data Action (Push)", 
+                                "description": "BEST FOR: Low-code. DC pushes directly to MCE Transactional API." 
+                            }
+                        ]
+                    },
+                    {
+                        "name": "ID-Only Payload?",
+                        "description": "Grid only sends Meter ID; Enrichment required via Data Graph.",
+                        "children": [
+                            {
+                                "name": "Need Multi-Step Journey?",
+                                "description": "Do you need wait steps or channel branching?",
+                                "children": [
+                                    { "name": "On-Demand Flow", "description": "BEST FOR: Declarative journeys with cross-object logic." }
+                                ]
+                            },
+                            {
+                                "name": "Sub-Second SLA?",
+                                "description": "Is extreme speed and storm-burst protection the priority?",
+                                "children": [
+                                    { "name": "Middleware Pull", "description": "BEST FOR: Extreme scale. Middleware pulls from Data Graph API & pushes to MCE." }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    };
+
+    const width = 900;
+    const height = 500;
+    const margin = {top: 20, right: 120, bottom: 20, left: 120};
+
+    const svg = d3.select("#tree-container").append("svg")
+        .attr("width", width)
+        .attr("height", height)
+        .append("g")
+        .attr("transform", `translate(${margin.left},${margin.top})`);
+
+    const tree = d3.tree().size([height - margin.top - margin.bottom, width - margin.left - margin.right]);
+    const root = d3.hierarchy(data);
+    tree(root);
+
+    svg.selectAll(".link")
+        .data(root.links())
+        .enter().append("path")
+        .attr("class", "link")
+        .attr("d", d3.linkHorizontal().x(d => d.y).y(d => d.x));
+
+    const node = svg.selectAll(".node")
+        .data(root.descendants())
+        .enter().append("g")
+        .attr("class", d => "node" + (d.children ? " node--internal" : " node--leaf"))
+        .attr("transform", d => `translate(${d.y},${d.x})`)
+        .on("mouseover", (event, d) => {
+            const tooltip = d3.select("#tooltip");
+            tooltip.transition().duration(200).style("opacity", .9);
+            tooltip.html(d.data.description)
+                .style("left", (event.pageX + 10) + "px")
+                .style("top", (event.pageY - 28) + "px");
+        })
+        .on("mouseout", () => {
+            d3.select("#tooltip").transition().duration(500).style("opacity", 0);
+        });
+
+    node.append("circle").attr("r", 8);
+    node.append("text")
+        .attr("dy", ".35em")
+        .attr("x", d => d.children ? -15 : 15)
+        .style("text-anchor", d => d.children ? "end" : "start")
+        .text(d => d.data.name);
+
+</script>
+
+<div class="legend">
+    <strong>How to use:</strong> Hover over nodes to see the architectural rationale. 
+    Blue circles indicate decision points; text labels indicate the recommended Salesforce architecture pattern.
+</div>
+
+</body>
+</html>
