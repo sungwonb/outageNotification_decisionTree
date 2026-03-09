@@ -84,8 +84,8 @@
         }
 
         header {
-            margin-bottom: var(--space-3xl);
-            padding-bottom: var(--space-2xl);
+            margin-bottom: var(--space-lg);
+            padding-bottom: var(--space-lg);
             border-bottom: 1px solid var(--border);
             text-align: center;
         }
@@ -132,6 +132,7 @@
         .tree-disclaimer strong { color: var(--text); font-weight: 600; }
         .tree-disclaimer a { color: var(--decision); text-decoration: none; font-weight: 500; }
         .tree-disclaimer a:hover { text-decoration: underline; }
+        .disclaimer-note { display: block; margin-top: var(--space-sm); padding-top: var(--space-sm); }
 
         #tree-container {
             min-height: 640px;
@@ -204,19 +205,20 @@
         .legend {
             display: flex;
             flex-wrap: wrap;
-            gap: var(--space-lg) var(--space-2xl);
+            gap: 0 var(--space-xl);
             align-items: center;
             justify-content: center;
             font-size: 0.8125rem;
             color: var(--text-muted);
-            padding: var(--space-lg) 0 var(--space-3xl);
+            padding: var(--space-md) 0 0;
             letter-spacing: 0.01em;
         }
 
         .legend-item {
-            display: flex;
+            display: inline-flex;
             align-items: center;
             gap: var(--space-sm);
+            white-space: nowrap;
         }
 
         .legend-dot {
@@ -344,18 +346,15 @@
     </header>
 
     <div id="tree-wrapper" role="region" aria-label="Architectural decision tree">
-        <p class="tree-disclaimer"><strong>Note:</strong> The final solution will depend on your specific use-case and tech-stack requirements. Review the <a href="#matrix">Pattern Comparison Matrix</a> below for a detailed comparison.</p>
+        <p class="tree-disclaimer">Hover over a node to see details.<br><span class="disclaimer-note"><strong>Note:</strong> The final solution will depend on your specific use-case and tech-stack requirements. Review the <a href="#matrix">Pattern Comparison Matrix</a> below for a detailed comparison.</span></p>
         <div id="tree-container" aria-busy="true" aria-live="polite">
             <noscript>JavaScript is required to display the decision tree. Please enable JavaScript to view this content.</noscript>
         </div>
-    </div>
-
-    <div class="legend">
-        <span class="legend-item"><span class="legend-dot legend-dot--root"></span> Start / trigger</span>
-        <span class="legend-item"><span class="legend-dot legend-dot--decision"></span> Decision point</span>
-        <span class="legend-item"><span class="legend-dot legend-dot--outcome"></span> Recommended pattern</span>
-        <span style="color: var(--text-subtle); font-weight: 400;">·</span>
-        <span>Hover over a node to see details.</span>
+        <div class="legend">
+            <span class="legend-item"><span class="legend-dot legend-dot--root"></span> Start / trigger</span>
+            <span class="legend-item"><span class="legend-dot legend-dot--decision"></span> Decision point</span>
+            <span class="legend-item"><span class="legend-dot legend-dot--outcome"></span> Recommended pattern</span>
+        </div>
     </div>
 
     <section class="matrix-section" id="matrix">
