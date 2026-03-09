@@ -7,79 +7,91 @@
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;0,8..60,600;0,8..60,700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg: #f6f7f9;
+            --bg: #faf9f7;
+            --bg-subtle: #f5f4f1;
             --surface: #ffffff;
-            --border: #e3e6ea;
-            --text: #1a1d21;
-            --text-muted: #5c6370;
-            --accent: #0d6e6e;
-            --accent-light: #e6f2f2;
-            --decision: #2d5a8b;
-            --decision-bg: #eef4fb;
-            --outcome: #1a7f37;
-            --outcome-bg: #e8f5ec;
-            --shadow: 0 1px 3px rgba(0,0,0,0.05);
-            --shadow-hover: 0 8px 24px rgba(0,0,0,0.08);
-            --space-xs: 0.25rem;   /* 4px */
-            --space-sm: 0.5rem;    /* 8px */
-            --space-md: 1rem;      /* 16px */
-            --space-lg: 1.5rem;    /* 24px */
-            --space-xl: 2rem;      /* 32px */
-            --space-2xl: 2.5rem;  /* 40px */
-            --space-3xl: 3rem;     /* 48px */
+            --surface-elevated: #ffffff;
+            --border: rgba(0,0,0,0.06);
+            --border-strong: rgba(0,0,0,0.1);
+            --text: #1c1917;
+            --text-muted: #57534e;
+            --text-subtle: #78716c;
+            --accent: #0f766e;
+            --accent-light: #ccfbf1;
+            --decision: #1e40af;
+            --decision-bg: #eff6ff;
+            --outcome: #166534;
+            --outcome-bg: #dcfce7;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -2px rgba(0,0,0,0.05);
+            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.04), 0 4px 6px -4px rgba(0,0,0,0.04);
+            --radius: 12px;
+            --radius-lg: 16px;
+            --space-xs: 0.25rem;
+            --space-sm: 0.5rem;
+            --space-md: 1rem;
+            --space-lg: 1.5rem;
+            --space-xl: 2rem;
+            --space-2xl: 3rem;
+            --space-3xl: 4rem;
+            --space-4xl: 5rem;
         }
 
         * { box-sizing: border-box; }
 
+        html { scroll-behavior: smooth; }
+
         body {
-            font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             background: var(--bg);
             color: var(--text);
             margin: 0;
             min-height: 100vh;
-            line-height: 1.5;
+            line-height: 1.6;
             -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
 
         .page {
-            max-width: 1240px;
+            max-width: 1280px;
             margin: 0 auto;
-            padding: var(--space-3xl) var(--space-xl);
+            padding: var(--space-4xl) var(--space-2xl);
         }
 
         header {
-            margin-bottom: var(--space-2xl);
-            padding-bottom: var(--space-xl);
+            margin-bottom: var(--space-3xl);
+            padding-bottom: var(--space-2xl);
             border-bottom: 1px solid var(--border);
+            text-align: center;
         }
 
         h1 {
-            font-size: 1.625rem;
-            font-weight: 700;
+            font-family: 'Source Serif 4', Georgia, serif;
+            font-size: 2.25rem;
+            font-weight: 600;
             color: var(--text);
-            margin: 0 0 var(--space-sm) 0;
-            letter-spacing: -0.025em;
-            line-height: 1.25;
+            margin: 0 0 var(--space-md) 0;
+            letter-spacing: -0.03em;
+            line-height: 1.2;
         }
 
         .subtitle {
-            font-size: 1rem;
+            font-size: 1.0625rem;
             color: var(--text-muted);
-            margin: 0;
-            max-width: 40em;
-            line-height: 1.5;
+            margin: 0 auto;
+            max-width: 36em;
+            line-height: 1.6;
         }
 
         #tree-wrapper {
             background: var(--surface);
-            border-radius: 16px;
-            border: 1px solid var(--border);
-            box-shadow: var(--shadow);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
             padding: var(--space-3xl);
-            margin-bottom: var(--space-2xl);
+            margin-bottom: var(--space-3xl);
             overflow: auto;
         }
 
@@ -97,7 +109,7 @@
 
         .node circle {
             stroke-width: 2.5px;
-            transition: transform 0.2s ease, filter 0.2s ease;
+            transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), filter 0.2s ease;
         }
 
         .node:hover circle {
@@ -112,45 +124,47 @@
         .node text {
             font: 500 14px 'DM Sans', sans-serif;
             fill: var(--text);
-            letter-spacing: 0.015em;
+            letter-spacing: 0.02em;
         }
 
-        .node--root text { font-weight: 700; fill: var(--accent); font-size: 15px; }
+        .node--root text { font-weight: 600; fill: var(--accent); font-size: 15px; }
         .node--leaf text { fill: var(--outcome); font-weight: 600; font-size: 13px; }
 
         .link {
             fill: none;
-            stroke: #b8bcc4;
-            stroke-width: 2px;
+            stroke: rgba(0,0,0,0.12);
+            stroke-width: 1.5px;
             stroke-linecap: round;
+            transition: stroke 0.2s ease;
         }
 
         #tooltip {
             position: fixed;
             padding: var(--space-md) var(--space-lg);
             background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 10px;
+            border-radius: var(--radius);
             pointer-events: none;
             opacity: 0;
-            box-shadow: var(--shadow-hover);
+            box-shadow: var(--shadow-lg);
             max-width: 300px;
             font-size: 0.8125rem;
             color: var(--text);
-            line-height: 1.5;
+            line-height: 1.55;
             z-index: 1000;
-            transition: opacity 0.12s ease, transform 0.12s ease;
+            transition: opacity 0.15s ease, transform 0.15s ease;
+            border: 1px solid var(--border);
         }
 
         .legend {
             display: flex;
             flex-wrap: wrap;
-            gap: var(--space-lg) var(--space-xl);
+            gap: var(--space-lg) var(--space-2xl);
             align-items: center;
+            justify-content: center;
             font-size: 0.8125rem;
             color: var(--text-muted);
-            padding-top: var(--space-md);
-            border-top: 1px solid var(--border);
+            padding: var(--space-lg) 0 var(--space-3xl);
+            letter-spacing: 0.01em;
         }
 
         .legend-item {
@@ -170,6 +184,88 @@
         .legend-dot--root { background: var(--accent-light); border-color: var(--accent); }
         .legend-dot--decision { background: var(--decision-bg); border-color: var(--decision); }
         .legend-dot--outcome { background: var(--outcome-bg); border-color: var(--outcome); }
+
+        .matrix-section {
+            margin-bottom: var(--space-3xl);
+        }
+
+        .matrix-section h2 {
+            font-family: 'Source Serif 4', Georgia, serif;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text);
+            margin: 0 0 var(--space-xl) 0;
+            letter-spacing: -0.02em;
+            text-align: center;
+        }
+
+        .matrix-wrapper {
+            background: var(--surface);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            overflow: auto;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9375rem;
+            min-width: 800px;
+        }
+
+        .comparison-table th {
+            font-weight: 600;
+            text-align: left;
+            padding: var(--space-lg) var(--space-xl);
+            background: var(--bg-subtle);
+            border-bottom: 1px solid var(--border);
+            color: var(--text);
+            font-size: 0.875rem;
+            letter-spacing: 0.01em;
+        }
+
+        .comparison-table th:first-child {
+            min-width: 140px;
+        }
+
+        .comparison-table th.pattern-col {
+            font-weight: 500;
+            font-size: 0.8125rem;
+            max-width: 220px;
+            color: var(--text-muted);
+        }
+
+        .comparison-table td {
+            padding: var(--space-lg) var(--space-xl);
+            border-bottom: 1px solid var(--border);
+            color: var(--text);
+            vertical-align: top;
+            line-height: 1.5;
+            transition: background 0.15s ease;
+        }
+
+        .comparison-table td:first-child {
+            font-weight: 500;
+            color: var(--text-muted);
+            white-space: nowrap;
+            font-size: 0.875rem;
+        }
+
+        .comparison-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .comparison-table tbody tr:hover td {
+            background: var(--bg);
+        }
+
+        .comparison-table tbody tr:nth-child(even) td {
+            background: rgba(250, 249, 247, 0.6);
+        }
+
+        .comparison-table tbody tr:nth-child(even):hover td {
+            background: var(--bg);
+        }
     </style>
 </head>
 <body>
@@ -184,15 +280,90 @@
         <div id="tree-container"></div>
     </div>
 
-    <div id="tooltip"></div>
-
     <div class="legend">
         <span class="legend-item"><span class="legend-dot legend-dot--root"></span> Start / trigger</span>
         <span class="legend-item"><span class="legend-dot legend-dot--decision"></span> Decision point</span>
         <span class="legend-item"><span class="legend-dot legend-dot--outcome"></span> Recommended pattern</span>
-        <span style="color: var(--border); font-weight: 400;">·</span>
+        <span style="color: var(--text-subtle); font-weight: 400;">·</span>
         <span>Hover over a node to see details.</span>
     </div>
+
+    <section class="matrix-section">
+        <h2>Pattern Comparison Matrix</h2>
+        <div class="matrix-wrapper">
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>Scenario</th>
+                        <th class="pattern-col">Pattern: D360 → Data Action → MCE (Push)</th>
+                        <th class="pattern-col">Pattern: MCE → Middleware Data Graph Call (Pull)</th>
+                        <th class="pattern-col">Pattern: D360 → MCA (Broadcast Flows)</th>
+                        <th class="pattern-col">Pattern: D360 → MCA (On-Demand Flows)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Trigger Source</td>
+                        <td>Data Cloud Streaming Insight</td>
+                        <td>External Grid/OMS</td>
+                        <td>D360 Segment</td>
+                        <td>D360 Data Action</td>
+                    </tr>
+                    <tr>
+                        <td>Best For…</td>
+                        <td>Low-to-Medium volume, No-Code speed.</td>
+                        <td>High-burst, High-scale, Complex Enrichment. Need to perform heavy merge/lookups.</td>
+                        <td>Planned outages, Low (No-Code)</td>
+                        <td>Sub-metering; Regional outages; multi-step journeys. Declarative</td>
+                    </tr>
+                    <tr>
+                        <td>Latency</td>
+                        <td>Sub-second</td>
+                        <td>Seconds</td>
+                        <td>Minutes to hours (Segment publish)</td>
+                        <td>Seconds (Event-based)</td>
+                    </tr>
+                    <tr>
+                        <td>Scale/Burst</td>
+                        <td>Extreme. Buffer via Queue (SQS/Kafka)</td>
+                        <td>Moderate. Subject to Data Action limits.</td>
+                        <td>High. Optimized for bulk "restoration" sends.</td>
+                        <td>Moderate. Subject to Flow Interview limits.</td>
+                    </tr>
+                    <tr>
+                        <td>Risk</td>
+                        <td>Black Box: Potential lag in Data Action processing. "Silent failures" difficult to monitor.</td>
+                        <td>Integration Debt: Requires custom dev and API management.</td>
+                        <td>Staleness: Risk of notifying customers whose power was already restored (False Positives).</td>
+                        <td>Governor Limits: Risk of hitting "Flow Interview" or "Apex CPU" limits during spikes.</td>
+                    </tr>
+                    <tr>
+                        <td>Complexity</td>
+                        <td>Low (Declarative)</td>
+                        <td>High (Code/Pro-Code)</td>
+                        <td>Low (Marketer-friendly)</td>
+                        <td>Medium (Declarative)</td>
+                    </tr>
+                    <tr>
+                        <td>Data Enrichment</td>
+                        <td>Limited to D360 ingested and mapped data</td>
+                        <td>Unlimited (Can join external APIs) + D360 Data Graph API call</td>
+                        <td>Pre-built Segment attributes + Data Graph</td>
+                        <td>Pulls from DMOs + Data Graph</td>
+                    </tr>
+                    <tr>
+                        <td>Governance</td>
+                        <td>Policy-driven. Relies on D360 "Consent" model.</td>
+                        <td>Customer-managed infrastructure. Full control over "Buffer" and "Back-pressure." Middleware can scrub data or check external lists before hitting MCE.</td>
+                        <td>Segment-driven: Built-in "Consent Filtering" during segment publication</td>
+                        <td>Workflow-driven. Can include "Decision Splits" to check consent, but adds latency.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <div id="tooltip"></div>
 </div>
 
 <script>
